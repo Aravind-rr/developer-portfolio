@@ -2,7 +2,7 @@
 
 A responsive, motion-aware developer portfolio for Aravind Raghuram T A. It showcases verified public projects spanning AI/ML, full-stack development, cybersecurity, IoT, logistics, and intelligent document processing.
 
-**Live site:** https://agile-nebula-smovwc8.vercel.app
+**Live site:** https://aravind-raghuram-portfolio.vercel.app
 
 ## Run locally
 
