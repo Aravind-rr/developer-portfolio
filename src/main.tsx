@@ -69,6 +69,7 @@ function App() {
   const [query, setQuery] = useState('');
   const [copied, setCopied] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [active, setActive] = useState('home');
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -78,8 +79,25 @@ function App() {
       if (event.key === 'Escape') { setPalette(false); setMenu(false); }
     };
     const onScroll = () => setProgress((scrollY / (document.documentElement.scrollHeight - innerHeight)) * 100);
-    addEventListener('keydown', onKey); addEventListener('scroll', onScroll, { passive: true });
-    return () => { removeEventListener('keydown', onKey); removeEventListener('scroll', onScroll); };
+    const onPointer = (event: PointerEvent) => {
+      document.documentElement.style.setProperty('--pointer-x', `${event.clientX}px`);
+      document.documentElement.style.setProperty('--pointer-y', `${event.clientY}px`);
+    };
+    const sections = [...document.querySelectorAll<HTMLElement>('main section[id]')];
+    const sectionObserver = new IntersectionObserver((entries) => {
+      const current = entries.find((entry) => entry.isIntersecting);
+      if (current?.target.id) setActive(current.target.id);
+    }, { rootMargin: '-35% 0px -55%' });
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add('is-visible'));
+    }, { threshold: 0.12 });
+    sections.forEach((section) => sectionObserver.observe(section));
+    document.querySelectorAll('.reveal-on-scroll').forEach((element) => revealObserver.observe(element));
+    addEventListener('keydown', onKey); addEventListener('scroll', onScroll, { passive: true }); addEventListener('pointermove', onPointer, { passive: true });
+    return () => {
+      removeEventListener('keydown', onKey); removeEventListener('scroll', onScroll); removeEventListener('pointermove', onPointer);
+      sectionObserver.disconnect(); revealObserver.disconnect();
+    };
   }, []);
 
   const filtered = useMemo(() => projects.filter((project) =>
@@ -99,9 +117,9 @@ function App() {
     <div className="progress" style={{ width: `${progress}%` }} />
     <div className="noise" aria-hidden="true" />
     <header className="nav-shell">
-      <a href="#home" className="brand" aria-label="Aravind, home"><span>AR</span><b>Aravind R.</b></a>
+      <a href="#home" className="brand" aria-label="Aravind Raghuram T A, home"><span>AT</span><b>Aravind Raghuram <i>T A</i></b></a>
       <nav className="desktop-nav" aria-label="Main navigation">
-        {nav.map((item) => <a key={item} href={`#${item.toLowerCase()}`}>{item}</a>)}
+        {nav.map((item) => <a className={active === item.toLowerCase() ? 'active' : ''} key={item} href={`#${item.toLowerCase()}`}>{item}</a>)}
       </nav>
       <div className="nav-actions">
         <button className="command-button" onClick={() => setPalette(true)} aria-label="Open navigation palette"><Command size={15}/><span>⌘ K</span></button>
@@ -111,31 +129,39 @@ function App() {
     {menu && <nav className="mobile-nav">{nav.map((item) => <button key={item} onClick={() => go(item)}>{item}</button>)}</nav>}
 
     <main id="home">
-      <section className="hero section-grid">
+      <section className="hero section-grid" id="home-section">
         <div className="hero-copy reveal">
-          <p className="eyebrow"><span className="status-dot"/> OPEN TO BUILDING WHAT'S NEXT</p>
-          <h1>Intelligence,<br/><em>engineered.</em></h1>
-          <p className="hero-intro">I’m <strong>Aravind Raghuram T A</strong> — a Computer Science Engineering student building practical software, AI-powered applications, and secure systems.</p>
+          <p className="eyebrow"><span className="status-dot"/> SOFTWARE · INTELLIGENCE · SECURITY</p>
+          <div className="hero-name" aria-label="Aravind Raghuram T A">
+            <span>ARAVIND</span>
+            <span>RAGHURAM</span>
+            <span className="surname">T A</span>
+          </div>
+          <p className="hero-statement">Engineering intelligent systems<br/>for the <em>real world.</em></p>
+          <p className="hero-intro">Computer Science Engineering student at VIT Chennai, building practical software, AI-powered applications, and secure systems.</p>
           <div className="hero-actions">
             <button className="primary" onClick={() => go('Work')}>Explore my work <ArrowUpRight size={18}/></button>
             <a className="secondary" href="https://github.com/Aravind-rr" target="_blank" rel="noreferrer"><Code2 size={18}/> GitHub profile</a>
           </div>
         </div>
         <div className="system-panel" aria-label="Developer system overview">
-          <div className="panel-top"><span>SYSTEM / AR-27</span><span>ONLINE</span></div>
+          <div className="panel-top"><span>SYSTEM / ARTA-27</span><span>BUILDING</span></div>
           <div className="orbit">
             <div className="ring ring-one"/><div className="ring ring-two"/>
-            <div className="core"><b>AR</b><small>BUILD MODE</small></div>
+            <div className="core"><b>AT</b><small>BUILD MODE</small></div>
             <i className="node n1"/><i className="node n2"/><i className="node n3"/>
+            <span className="orbit-label label-one">AI / 01</span><span className="orbit-label label-two">SEC / 02</span><span className="orbit-label label-three">SYS / 03</span>
           </div>
           <div className="signal-grid">
-            <span><b>07</b> PUBLIC REPOS</span><span><b>04</b> DOMAINS</span><span><b>2027</b> GRADUATION</span>
+            <span><b>07</b> VERIFIED REPOS</span><span><b>04</b> BUILD DOMAINS</span><span><b>2027</b> GRADUATION</span>
           </div>
         </div>
         <div className="scroll-mark">SCROLL TO DISCOVER <span/></div>
       </section>
 
-      <section id="about" className="about section-grid ruled">
+      <div className="signal-marquee" aria-hidden="true"><div>DOCUMENT INTELLIGENCE <i/> SECURE SYSTEMS <i/> APPLIED AI <i/> FULL-STACK ENGINEERING <i/> DOCUMENT INTELLIGENCE <i/> SECURE SYSTEMS</div></div>
+
+      <section id="about" className="about section-grid ruled reveal-on-scroll">
         <p className="section-index">01 / ABOUT</p>
         <div className="about-lead"><h2>I turn complex problems into <span>useful systems.</span></h2></div>
         <div className="about-copy">
@@ -147,7 +173,7 @@ function App() {
         </div>
       </section>
 
-      <section id="work" className="work ruled">
+      <section id="work" className="work ruled reveal-on-scroll">
         <div className="section-heading"><p className="section-index">02 / SELECTED WORK</p><h2>Projects built for the <span>real world.</span></h2></div>
         <div className="featured-grid">
           {projects.filter(p => p.featured).map((project, index) => <ProjectCard key={project.name} project={project} index={index}/>) }
@@ -167,7 +193,8 @@ function App() {
         </div>
       </section>
 
-      <section id="skills" className="skills ruled">
+      <div className="chapter-break" aria-hidden="true"><span>BUILD / MEASURE / REFINE</span><b>03</b></div>
+      <section id="skills" className="skills ruled reveal-on-scroll">
         <div className="section-heading"><p className="section-index">03 / CAPABILITIES</p><h2>A stack shaped by <span>shipping.</span></h2></div>
         <div className="skill-grid">
           <Skill n="01" title="Languages" items="Python · TypeScript · JavaScript · Java · SQL"/>
@@ -179,7 +206,7 @@ function App() {
         </div>
       </section>
 
-      <section id="journey" className="journey ruled">
+      <section id="journey" className="journey ruled reveal-on-scroll">
         <div className="section-heading"><p className="section-index">04 / JOURNEY</p><h2>Learning by <span>building.</span></h2></div>
         <div className="timeline">
           <article><time>2023 — 2027</time><div><p>EDUCATION</p><h3>B.Tech, Computer Science Engineering</h3><span>Vellore Institute of Technology, Chennai</span></div></article>
@@ -187,7 +214,7 @@ function App() {
         </div>
       </section>
 
-      <section id="contact" className="contact ruled">
+      <section id="contact" className="contact ruled reveal-on-scroll">
         <p className="eyebrow"><Sparkles size={14}/> LET'S BUILD SOMETHING USEFUL</p>
         <h2>Have a hard problem?<br/><span>Let’s make it tractable.</span></h2>
         <p className="contact-copy">Explore the code, follow the work, or start a conversation through GitHub.</p>
@@ -198,7 +225,7 @@ function App() {
       </section>
     </main>
 
-    <footer><div className="brand"><span>AR</span><b>Aravind Raghuram</b></div><p>Designed around curiosity. Engineered for impact.</p><p>© 2026</p></footer>
+    <footer><div className="brand"><span>AT</span><b>Aravind Raghuram <i>T A</i></b></div><p>Designed around curiosity. Engineered for impact.</p><p>© 2026</p></footer>
 
     {palette && <div className="palette-backdrop" onMouseDown={() => setPalette(false)}>
       <div className="palette" role="dialog" aria-modal="true" aria-label="Quick navigation" onMouseDown={e => e.stopPropagation()}>
@@ -212,9 +239,10 @@ function App() {
 function ProjectCard({ project, index }: { project: Project; index: number }) {
   return <a className={`project-card project-${index}`} href={project.href} target="_blank" rel="noreferrer">
     <div className="project-visual" aria-hidden="true">
-      <span className="visual-label">{project.slug}</span>
-      <div className="visual-code">{index === 0 ? '[SCAN] → [REASON] → [RESTORE]' : index === 1 ? 'LAT 12.99° / SAFE PATH' : 'ZONE 04 / ROUTE OPTIMAL'}</div>
-      <div className="visual-bars"><i/><i/><i/><i/><i/></div>
+      <div className="visual-meta"><span>{project.slug}</span><b>0{index + 1}</b></div>
+      {index === 0 && <div className="ocr-scene"><div className="paper-lines"><i/><i/><i/><i/><i/></div><div className="scan-line"/><span>96.4% CONTEXT RESTORED</span></div>}
+      {index === 1 && <div className="map-scene"><i className="map-point a"/><i className="map-point b"/><i className="map-point c"/><div className="route-line"/><span>SAFE ROUTE / 12.99° N</span></div>}
+      {index === 2 && <div className="logistics-scene"><div className="zone z1">01</div><div className="zone z2">02</div><div className="zone z3">03</div><div className="dispatch-line"/><span>AGENT 04 → ROUTE OPTIMAL</span></div>}
     </div>
     <div className="project-info"><div><p>{project.category}</p><h3>{project.name}</h3></div><ArrowUpRight/>
       <p className="project-summary">{project.summary}</p><div className="tags">{project.stack.map(tag => <span key={tag}>{tag}</span>)}</div>
